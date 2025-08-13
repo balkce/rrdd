@@ -2,7 +2,7 @@
 
 ## Install
 
-After cloning this repository, and `cd rrdd`, install kissdps:
+After cloning this repository, and `cd rrdd`, install the `kissdsp` library:
 
     git clone https://github.com/FrancoisGrondin/kissdsp.git
     cd kissdsp
