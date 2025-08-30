@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import kissdsp.filterbank as fb
 import kissdsp.visualize as vz
 import kissdsp.io as io
+from hamming74 import Hamming
 
 def encode(byte_array, N=2048, fS=16000, start_f=1000.0, bit_bandwidth=750.0, interbit_bandwidth=0.0):
   assert(len(byte_array) > 0)
@@ -38,6 +39,26 @@ def encode(byte_array, N=2048, fS=16000, start_f=1000.0, bit_bandwidth=750.0, in
   xs /= np.max(xs)
   
   return xs
+
+def encode_ham(word_array, N=2048, fS=16000, start_f=1000.0, bit_bandwidth=750.0, interbit_bandwidth=0.0):
+  assert(len(word_array) > 0)
+  
+  num_bits_word = len(word_array[0])
+  
+  assert(num_bits_word == 4)
+  
+  ham = Hamming()
+  
+  byte_array = []
+  for index_byte in range(len(word_array)):
+    time_indexes = np.arange(N*index_byte, N*index_byte+N)
+    
+    msg = np.matrix(word_array[index_byte])
+    this_enc_word = ham.encode(msg.transpose())
+    
+    byte_array += [this_enc_word]
+  
+  return encode(byte_array, N=N, fS=fS, start_f=start_f, bit_bandwidth=bit_bandwidth, interbit_bandwidth=interbit_bandwidth)
 
 def decode(xs, num_bits, N=2048, fS=16000, start_f=1000.0, bit_bandwidth=750.0, interbit_bandwidth=0.0):
   assert(num_bits > 0)
@@ -160,3 +181,19 @@ def decode(xs, num_bits, N=2048, fS=16000, start_f=1000.0, bit_bandwidth=750.0, 
   
   return bytes_array
 
+
+def decode_ham(xs, N=2048, fS=16000, start_f=1000.0, bit_bandwidth=750.0, interbit_bandwidth=0.0):
+  byte_array_received = decode(xs, 7, N=N, fS=fS, start_f=start_f, bit_bandwidth=bit_bandwidth, interbit_bandwidth=interbit_bandwidth)
+  
+  ham = Hamming()
+  word_array = []
+  for index_byte in range(len(byte_array_received)):
+    msg = np.matrix(byte_array_received[index_byte]).transpose()
+    this_dec_word = ham.decode(msg)
+    
+    word_array += [this_dec_word]
+  
+  return word_array
+
+  
+  
